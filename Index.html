@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <style>
+    :root{
+      --azul:#1B396A; --azul2:#2C5AA0; --fondo:#EEF2F7; --tarjeta:#FFFFFF;
+      --texto:#1F2933; --suave:#5F6B7A; --borde:#CBD3DE;
+      --ok:#1E7B47; --okf:#E3F4EA; --err:#B42318; --errf:#FDECEA; --av:#8A5A00; --avf:#FFF4D6;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--fondo);color:var(--texto);
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;font-size:16px;line-height:1.45}
+    header{background:linear-gradient(135deg,var(--azul),var(--azul2));color:#fff;padding:20px 16px 26px;text-align:center}
+    header .inst{font-size:11px;letter-spacing:1.5px;opacity:.85;text-transform:uppercase}
+    header h1{font-size:21px;margin:6px 0 2px;letter-spacing:.5px}
+    header p{margin:0;font-size:13px;opacity:.9}
+    main{max-width:520px;margin:-14px auto 24px;padding:0 16px}
+    .card{background:var(--tarjeta);border-radius:14px;box-shadow:0 2px 10px rgba(27,57,106,.10);padding:20px 18px;margin-bottom:14px}
+    label{display:block;font-weight:600;font-size:14px;margin:14px 0 6px}
+    label:first-child{margin-top:0}
+    .ayuda{font-size:12.5px;color:var(--suave);margin-top:4px}
+    input,select{width:100%;font-size:17px;padding:12px;border:1.5px solid var(--borde);border-radius:10px;background:#fff;color:var(--texto);-webkit-appearance:none;appearance:none}
+    select{background-image:linear-gradient(45deg,transparent 50%,var(--suave) 50%),linear-gradient(135deg,var(--suave) 50%,transparent 50%);
+      background-position:calc(100% - 20px) 50%,calc(100% - 14px) 50%;background-size:6px 6px;background-repeat:no-repeat;padding-right:34px}
+    input:focus,select:focus{outline:none;border-color:var(--azul2);box-shadow:0 0 0 3px rgba(44,90,160,.18)}
+    input.mal{border-color:var(--err)}
+    .error-campo{color:var(--err);font-size:13px;margin-top:4px;display:none}
+    .conf{border:1.5px solid var(--azul2);background:#F4F7FC;border-radius:12px;padding:14px}
+    .conf .t{font-weight:700;color:var(--azul);font-size:16px}
+    .conf .m{font-size:13.5px;color:var(--suave);margin-top:4px}
+    .chip{display:inline-block;font-size:11.5px;font-weight:700;background:var(--azul);color:#fff;border-radius:20px;padding:2px 9px;margin-bottom:6px}
+    button{width:100%;font-size:17px;font-weight:700;padding:14px;border:none;border-radius:12px;cursor:pointer;margin-top:18px}
+    .prim{background:var(--azul);color:#fff}
+    .prim:disabled{opacity:.6;cursor:wait}
+    .sec{background:transparent;color:var(--azul2);border:1.5px solid var(--azul2);margin-top:10px;font-size:15px;padding:11px}
+    .link{background:none;border:none;color:var(--azul2);font-size:14px;text-decoration:underline;padding:6px 0;margin-top:8px;width:auto;font-weight:600}
+    .msg{border-radius:10px;padding:12px 14px;font-size:14.5px;margin-top:14px;display:none}
+    .msg.err{display:block;background:var(--errf);color:var(--err);border:1px solid #F5C2BC}
+    .msg.av{display:block;background:var(--avf);color:var(--av);border:1px solid #F1D48A}
+    .msg.info{display:block;background:#EAF1FB;color:var(--azul);border:1px solid #C6D6EE}
+    .exito{text-align:center}
+    .exito .icono{width:68px;height:68px;border-radius:50%;background:var(--okf);color:var(--ok);font-size:40px;line-height:68px;margin:4px auto 10px}
+    .exito h2{color:var(--ok);margin:0 0 6px;font-size:21px}
+    .folio{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:20px;font-weight:700;letter-spacing:1px;background:var(--fondo);border-radius:8px;padding:8px;margin:12px 0}
+    .dato{font-size:14px;color:var(--suave);margin:4px 0}
+    .dato b{color:var(--texto)}
+    footer{text-align:center;font-size:12px;color:var(--suave);padding:0 16px 24px}
+    .oculto{display:none!important}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="inst">Instituto Tecnológico de Reynosa · Sistemas y Computación</div>
+    <h1>CONECTATEC 2026</h1>
+    <p>Ciclo de Conferencias · Registro de asistencia</p>
+  </header>
+
+  <main>
+    <!-- ================= FORMULARIO ================= -->
+    <section id="vistaForm" class="card">
+      <form id="form" novalidate autocomplete="on">
+        <label>Conferencia / actividad</label>
+        <div id="confFija" class="conf oculto"></div>
+        <div id="confLista" class="oculto">
+          <select id="selConf" aria-label="Conferencia"></select>
+          <div id="ayudaConf" class="ayuda"></div>
+          <button type="button" class="link" id="btnRefrescar">↻ Actualizar lista</button>
+        </div>
+        <div id="sinConf" class="msg info oculto"></div>
+
+        <label for="control">Número de control</label>
+        <input id="control" name="control" inputmode="text" autocapitalize="characters" autocorrect="off"
+               spellcheck="false" maxlength="9" placeholder="Ej. 21580123" required>
+        <div class="ayuda">8 dígitos, sin espacios (puede iniciar con una letra, p. ej. C21580123).</div>
+        <div class="error-campo" id="errControl"></div>
+
+        <label for="nombre">Nombre completo</label>
+        <input id="nombre" name="nombre" autocapitalize="characters" maxlength="80"
+               placeholder="NOMBRE(S) APELLIDO PATERNO APELLIDO MATERNO" required>
+        <div class="ayuda">Tal como quieres que aparezca en tu constancia.</div>
+        <div class="error-campo" id="errNombre"></div>
+
+        <label for="semestre">Semestre</label>
+        <select id="semestre" name="semestre" required>
+          <option value="">Selecciona…</option>
+          <option>1</option><option>3</option><option>5</option><option>7</option><option>9</option>
+        </select>
+        <div class="error-campo" id="errSemestre"></div>
+
+        <div id="avisoSede" class="msg av oculto"></div>
+        <div id="msgError" class="msg"></div>
+
+        <button type="submit" class="prim" id="btnEnviar">Registrar asistencia</button>
+      </form>
+    </section>
+
+    <!-- ================= ÉXITO ================= -->
+    <section id="vistaOk" class="card exito oculto">
+      <div class="icono">✓</div>
+      <h2>¡Asistencia registrada!</h2>
+      <div class="folio" id="okFolio"></div>
+      <div class="dato"><b id="okNombre"></b></div>
+      <div class="dato">No. control: <b id="okControl"></b></div>
+      <div class="dato" style="margin-top:10px"><b id="okConf"></b></div>
+      <div class="dato" id="okPonente"></div>
+      <div class="dato" id="okHorario"></div>
+      <div class="dato">Hora de registro: <b id="okHora"></b></div>
+      <div id="okAviso" class="msg av oculto" style="text-align:left"></div>
+      <p class="ayuda" style="margin-top:14px">Toma captura de pantalla como comprobante.</p>
+      <button type="button" class="sec" id="btnOtra">Registrar otra actividad</button>
+    </section>
+  </main>
+
+  <footer>Departamento de Sistemas y Computación · ITR · 2026</footer>
+
+<script>
+  var BOOT = <?!= boot ?>;
+  var cargadoEn = Date.now();
+  var REGEX_CONTROL = /^[A-Z]?\d{8}$/;
+  var REGEX_NOMBRE = /^[A-ZÁÉÍÓÚÜÑ][A-ZÁÉÍÓÚÜÑ' -]*$/;
+
+  var $ = function (id) { return document.getElementById(id); };
+  var confs = BOOT.confs || [];
+  var ahora = BOOT.ahora;
+  var confSeleccionada = null;   // objeto conferencia
+  var modoFijo = false;          // true si viene ?conf=N en la URL
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function hhmm(m) { return ('0' + Math.floor(m / 60)).slice(-2) + ':' + ('0' + (m % 60)).slice(-2); }
+
+  // Minutos "ahora" según el reloj del SERVIDOR (no el del celular) + tiempo transcurrido.
+  function minutosAhora() { return ahora.min + Math.floor((Date.now() - cargadoEn) / 60000); }
+
+  function abierta(c) {
+    if (!BOOT.cfg.ventana) return true;
+    var m = minutosAhora();
+    return c.fecha === ahora.fecha && m >= c.ini - BOOT.cfg.antes && m <= c.finMin + BOOT.cfg.despues;
+  }
+
+  function tarjetaConf(c) {
+    return '<span class="chip">' + esc(c.fechaLarga) + ' · ' + esc(c.inicio) + ' - ' + esc(c.fin) + ' h</span>' +
+      '<div class="t">' + esc(c.titulo) + '</div>' +
+      (c.ponente ? '<div class="m">' + esc(c.ponente) + '</div>' : '') +
+      '<div class="m">Sede: ' + esc(c.sede) + (c.semestres && !/^todos$/i.test(c.semestres) ? ' · Semestres ' + esc(c.semestres) : '') + '</div>';
+  }
+
+  // ------------------------------------------------------------------
+  //  Conferencia: fija (QR específico) o lista filtrada por horario
+  // ------------------------------------------------------------------
+  function pintarConferencias() {
+    var porQR = BOOT.conf ? confs.filter(function (c) { return c.id === BOOT.conf; })[0] : null;
+
+    if (porQR && modoFijo !== 'lista') {
+      modoFijo = true;
+      confSeleccionada = porQR;
+      $('confFija').innerHTML = tarjetaConf(porQR);
+      $('confFija').classList.remove('oculto');
+      $('confLista').classList.add('oculto');
+      $('sinConf').classList.add('oculto');
+      if (!abierta(porQR)) {
+        mostrarError('El registro de esta actividad abre el ' + porQR.fechaLarga + ' a las ' +
+          hhmm(porQR.ini - BOOT.cfg.antes) + ' h y cierra a las ' + hhmm(porQR.finMin + BOOT.cfg.despues) + ' h.');
+      }
+      return;
+    }
+
+    if (BOOT.conf && !porQR) mostrarError('El código QR no corresponde a una conferencia activa. Elige la actividad de la lista.');
+
+    modoFijo = false;
+    $('confFija').classList.add('oculto');
+    var disponibles = confs.filter(abierta);
+    var sel = $('selConf');
+    var previo = sel.value;
+    sel.innerHTML = '';
+
+    if (!disponibles.length) {
+      $('confLista').classList.remove('oculto');
+      sel.classList.add('oculto');
+      var prox = confs.filter(function (c) {
+        return c.fecha > ahora.fecha || (c.fecha === ahora.fecha && c.ini - BOOT.cfg.antes > minutosAhora());
+      }).sort(function (a, b) { return (a.fecha + hhmm(a.ini)).localeCompare(b.fecha + hhmm(b.ini)); })[0];
+      $('ayudaConf').textContent = '';
+      $('sinConf').innerHTML = 'No hay actividades con registro abierto en este momento (' + esc(ahora.hora || hhmm(minutosAhora())) + ' h).' +
+        (prox ? '<br>Próxima: <b>' + esc(prox.titulo) + '</b> — ' + esc(prox.fechaLarga) + ', ' + esc(prox.inicio) + ' h.' : '');
+      $('sinConf').classList.remove('oculto');
+      confSeleccionada = null;
+      return;
+    }
+
+    $('sinConf').classList.add('oculto');
+    sel.classList.remove('oculto');
+    $('confLista').classList.remove('oculto');
+    var html = disponibles.length > 1 ? '<option value="">Selecciona la actividad…</option>' : '';
+    var fechaAnt = '';
+    disponibles.forEach(function (c) {
+      if (!BOOT.cfg.ventana && c.fecha !== fechaAnt) {
+        if (fechaAnt) html += '</optgroup>';
+        html += '<optgroup label="' + esc(c.fechaLarga) + '">';
+        fechaAnt = c.fecha;
+      }
+      html += '<option value="' + esc(c.id) + '">' + esc(c.inicio + '-' + c.fin + ' · ' + c.titulo) + '</option>';
+    });
+    if (fechaAnt) html += '</optgroup>';
+    sel.innerHTML = html;
+    if (previo && disponibles.some(function (c) { return c.id === previo; })) sel.value = previo;
+    $('ayudaConf').textContent = BOOT.cfg.ventana ? 'Solo se muestran las actividades con registro abierto ahora.' : '';
+    actualizarSeleccion();
+  }
+
+  function actualizarSeleccion() {
+    var id = $('selConf').value;
+    confSeleccionada = confs.filter(function (c) { return c.id === id; })[0] || null;
+    revisarSede();
+  }
+
+  function revisarSede() {
+    var s = $('semestre').value, c = confSeleccionada, box = $('avisoSede');
+    if (!c || !s || !c.semestres || /^todos$/i.test(c.semestres) ||
+        c.semestres.split(/[\s,;]+/).indexOf(s) >= 0) { box.classList.add('oculto'); return; }
+    if (BOOT.cfg.bloquearSede) box.textContent = '⛔ Esta actividad (' + c.sede + ') es solo para semestres ' + c.semestres + '.';
+    else box.textContent = '⚠️ Esta actividad (' + c.sede + ') está asignada a los semestres ' + c.semestres + '. Verifica que estés en la sede correcta.';
+    box.classList.remove('oculto');
+  }
+
+  // ------------------------------------------------------------------
+  //  Validación de campos
+  // ------------------------------------------------------------------
+  function normControl(v) { return String(v || '').toUpperCase().replace(/[\s\-_.]/g, ''); }
+  function normNombre(v) { return String(v || '').toUpperCase().replace(/\s+/g, ' ').trim(); }
+
+  function campoError(input, idErr, msg) {
+    var e = $(idErr);
+    if (msg) { e.textContent = msg; e.style.display = 'block'; if (input) input.classList.add('mal'); }
+    else { e.style.display = 'none'; if (input) input.classList.remove('mal'); }
+    return !msg;
+  }
+
+  function validar() {
+    var ok = true;
+    var ctrl = normControl($('control').value);
+    $('control').value = ctrl;
+    ok = campoError($('control'), 'errControl',
+      REGEX_CONTROL.test(ctrl) ? '' : 'Número de control inválido: deben ser 8 dígitos (o 1 letra + 8 dígitos), sin espacios.') && ok;
+
+    var nom = normNombre($('nombre').value);
+    $('nombre').value = nom;
+    ok = campoError($('nombre'), 'errNombre',
+      (REGEX_NOMBRE.test(nom) && nom.split(' ').length >= 2 && nom.length >= 6) ? '' : 'Escribe tu nombre completo (nombre y apellidos), solo letras.') && ok;
+
+    ok = campoError($('semestre'), 'errSemestre', $('semestre').value ? '' : 'Selecciona tu semestre.') && ok;
+
+    if (!confSeleccionada) { mostrarError('Selecciona la conferencia o actividad.'); ok = false; }
+    return ok;
+  }
+
+  function mostrarError(msg) { var m = $('msgError'); m.textContent = msg; m.className = 'msg err'; }
+  function limpiarError() { $('msgError').className = 'msg'; $('msgError').textContent = ''; }
+
+  // ------------------------------------------------------------------
+  //  Envío
+  // ------------------------------------------------------------------
+  $('form').addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    limpiarError();
+    if (!validar()) return;
+
+    var btn = $('btnEnviar');
+    btn.disabled = true; btn.textContent = 'Registrando…';
+
+    var datos = {
+      control: $('control').value,
+      nombre: $('nombre').value,
+      semestre: $('semestre').value,
+      conf: confSeleccionada.id
+    };
+    try { localStorage.setItem('ctec26_alumno', JSON.stringify({ control: datos.control, nombre: datos.nombre, semestre: datos.semestre })); } catch (e) {}
+
+    google.script.run
+      .withSuccessHandler(function (r) {
+        btn.disabled = false; btn.textContent = 'Registrar asistencia';
+        if (!r || !r.ok) { mostrarError((r && r.error) || 'No se pudo registrar.'); return; }
+        $('okFolio').textContent = 'Folio ' + r.folio;
+        $('okNombre').textContent = r.nombre;
+        $('okControl').textContent = r.control;
+        $('okConf').textContent = r.conferencia;
+        $('okPonente').textContent = r.ponente || '';
+        $('okHorario').textContent = r.horario;
+        $('okHora').textContent = r.hora;
+        if (r.aviso) { $('okAviso').textContent = '⚠️ ' + r.aviso; $('okAviso').classList.remove('oculto'); }
+        else $('okAviso').classList.add('oculto');
+        $('vistaForm').classList.add('oculto');
+        $('vistaOk').classList.remove('oculto');
+        window.scrollTo(0, 0);
+      })
+      .withFailureHandler(function (e) {
+        btn.disabled = false; btn.textContent = 'Registrar asistencia';
+        mostrarError('Sin conexión o error del servidor. Revisa tu internet e intenta de nuevo.');
+      })
+      .registrar(datos);
+  });
+
+  $('btnOtra').addEventListener('click', function () {
+    // Para registrar otra actividad se muestra la lista por horario.
+    modoFijo = 'lista';
+    limpiarError();
+    $('vistaOk').classList.add('oculto');
+    $('vistaForm').classList.remove('oculto');
+    refrescar();
+  });
+
+  function refrescar() {
+    google.script.run.withSuccessHandler(function (r) {
+      confs = r.confs; ahora = r.ahora; cargadoEn = Date.now();
+      pintarConferencias();
+    }).estadoActual();
+  }
+
+  $('btnRefrescar').addEventListener('click', refrescar);
+  $('selConf').addEventListener('change', function () { limpiarError(); actualizarSeleccion(); });
+  $('semestre').addEventListener('change', revisarSede);
+  $('control').addEventListener('input', function () {
+    var v = normControl(this.value); if (v !== this.value) this.value = v;
+  });
+  $('control').addEventListener('blur', function () {
+    if (!this.value) return;
+    campoError(this, 'errControl', REGEX_CONTROL.test(normControl(this.value)) ? '' :
+      'Número de control inválido: deben ser 8 dígitos (o 1 letra + 8 dígitos), sin espacios.');
+  });
+  $('nombre').addEventListener('blur', function () { this.value = normNombre(this.value); });
+
+  // ------------------------------------------------------------------
+  //  Inicio
+  // ------------------------------------------------------------------
+  (function init() {
+    try {
+      var g = JSON.parse(localStorage.getItem('ctec26_alumno') || 'null');
+      if (g) { $('control').value = g.control || ''; $('nombre').value = g.nombre || ''; $('semestre').value = g.semestre || ''; }
+    } catch (e) {}
+    pintarConferencias();
+    revisarSede();
+    // Refresca la lista cada 2 minutos si no viene de un QR específico.
+    setInterval(function () { if (!modoFijo) refrescar(); }, 120000);
+  })();
+</script>
+</body>
+</html>
